@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MyTest</string>
+    <string name="question_title">Select the correct word from given.</string>
+</resources>
