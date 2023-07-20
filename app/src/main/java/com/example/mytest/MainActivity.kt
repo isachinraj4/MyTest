@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
+                    LoadWords(modifier = Modifier.fillMaxSize())
                 }
             }
         }
@@ -57,7 +58,8 @@ class MainActivity : ComponentActivity() {
 fun RadioOptions(
     options: List<String>,
     selectedOption: String,
-    onOptionSelected: (String) -> Unit
+    onOptionSelected: (String) -> Unit,
+    onClearSelection: () -> Unit
 ) {
     Column {
         options.forEach { option ->
@@ -78,21 +80,32 @@ fun RadioOptions(
                 )
             }
         }
+
+        // Button to clear the selection
+        Button(
+            onClick = { onClearSelection() },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text("Clear Selection")
+        }
     }
 }
 
 
+
 @Composable
 fun DisplayWords(
-    modifier: Modifier = Modifier,
-    allWord: List<Word>
+    tenWords: List<Word>,
+    modifier: Modifier = Modifier
 ) {
-    val random = Random
-    val subWordList = allWord.subList(
-        random.nextInt(0, 10),
-        random.nextInt(20,30)
-    )
-    var index = 0
+    var clicks by remember { mutableStateOf(0) }
+    if (clicks >= tenWords.size) {
+        clicks = 0
+    } else if(clicks < 0) {
+        clicks = tenWords.size - 1
+    }
+    val word = tenWords[clicks].word
+    val optionsWord = swapWords(word)
     Column(modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -103,13 +116,14 @@ fun DisplayWords(
         Spacer(modifier = Modifier.size(20.dp))
         RadioOptions(
             options = listOf(
-                subWordList[index].word,
-                subWordList[index].word,
-                subWordList[index].word,
-                subWordList[index].word
+                optionsWord[0],
+                optionsWord[1],
+                optionsWord[2],
+                optionsWord[3]
             ),
             selectedOption = selectedOption,
-            onOptionSelected = { option -> selectedOption = option }
+            onOptionSelected = { option -> selectedOption = option },
+            onClearSelection = { selectedOption = "" }
         )
 
         Spacer(modifier = Modifier.size(20.dp))
@@ -118,10 +132,10 @@ fun DisplayWords(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = { clicks -= 1 }) {
                 Text(text = "Previous")
             }
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = { clicks += 1 }) {
                 Text(
                     text = "Next",
                     modifier = Modifier.width(50.dp),
@@ -148,7 +162,8 @@ fun swapWords(word: String): List<String> {
 
 @Composable
 fun LoadWords(modifier: Modifier) {
-    DisplayWords(allWord = words)
+    val start = Random.nextInt(0, words.size - 10)
+    DisplayWords(words.subList(start, start+10 ))
 }
 
 
