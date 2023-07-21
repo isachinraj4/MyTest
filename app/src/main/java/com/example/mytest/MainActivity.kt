@@ -31,7 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.mytest.data.WordDatasource
 import com.example.mytest.model.Word
 import com.example.mytest.model.words
 import com.example.mytest.ui.theme.MyTestTheme

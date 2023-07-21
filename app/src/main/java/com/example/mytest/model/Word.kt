@@ -1,6 +1,11 @@
 package com.example.mytest.model
 
-data class Word(val word: String)
+data class Word(val word: String = "",
+                val isGuessedWordWrong: Boolean = false,
+                val score: Int = 0,
+                val currentWordCount: Int = 0,
+                val isGameOver: Boolean = false
+)
 
 val words = listOf(
     Word("Accomplish")
