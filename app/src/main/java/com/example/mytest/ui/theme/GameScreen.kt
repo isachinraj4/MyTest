@@ -1,37 +1,34 @@
 package com.example.mytest.ui.theme
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mytest.R
-import com.example.mytest.model.Word
-import com.example.mytest.model.words
-import com.example.mytest.swapWords
-import kotlin.random.Random
 
 
 @Composable
@@ -39,7 +36,8 @@ fun RadioOptions(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
-    onClearSelection: () -> Unit
+    onClearSelection: () -> Unit,
+    onKeyboardDone: () -> Unit
 ) {
     Column {
         options.forEach { option ->
@@ -71,60 +69,6 @@ fun RadioOptions(
     }
 }
 
-
-@Composable
-fun DisplayWords(
-    tenWords: List<Word>,
-    modifier: Modifier = Modifier
-) {
-    var clicks by remember { mutableStateOf(0) }
-    if (clicks >= tenWords.size) {
-        clicks = 0
-    } else if(clicks < 0) {
-        clicks = tenWords.size - 1
-    }
-    val word = tenWords[clicks].word
-    val optionsWord = swapWords(word)
-    Column(modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-
-    ) {
-        var selectedOption by rememberSaveable { mutableStateOf("") }
-        Text(text = stringResource(R.string.question_title))
-        Spacer(modifier = Modifier.size(20.dp))
-        com.example.mytest.RadioOptions(
-            options = listOf(
-                optionsWord[0],
-                optionsWord[1],
-                optionsWord[2],
-                optionsWord[3]
-            ),
-            selectedOption = selectedOption,
-            onOptionSelected = { option -> selectedOption = option },
-            onClearSelection = { selectedOption = "" }
-        )
-
-        Spacer(modifier = Modifier.size(20.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = { clicks -= 1 }) {
-                Text(text = "Previous")
-            }
-            Button(onClick = { clicks += 1 }) {
-                Text(
-                    text = "Next",
-                    modifier = Modifier.width(50.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
 @Composable
 fun GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
     Row(
@@ -148,46 +92,87 @@ fun GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun LoadWords(modifier: Modifier) {
-    val start = Random.nextInt(0, words.size - 10)
-    com.example.mytest.DisplayWords(words.subList(start, start + 10))
+private fun FinalScoreDialog(
+    onPlayAgain: () -> Unit,
+    modifier: Modifier = Modifier,
+    score: Int
+) {
+    val activity = (LocalContext.current as Activity)
+
+    AlertDialog(
+        onDismissRequest = {
+            // Dismiss the dialog when the user clicks outside the dialog or on the back
+            // button. If you want to disable that functionality, simply use an empty
+            // onCloseRequest.
+        },
+        title = { Text(stringResource(R.string.congratulations)) },
+        text = { Text(stringResource(R.string.you_scored, score)) },
+        modifier = modifier,
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    activity.finish()
+                }
+            ) {
+                Text(text = stringResource(R.string.exit))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onPlayAgain
+            ) {
+                Text(text = stringResource(R.string.play_again))
+            }
+        }
+    )
 }
 
 @Composable
 fun GameScreen(
-    gameViewModel: GameViewModel = viewModel(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    gameViewModel: GameViewModel = viewModel()
 ) {
     val gameUiState by gameViewModel.uiState.collectAsState()
-    Column() {
+
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         GameStatus(wordCount = gameUiState.currentWordCount, score = gameUiState.score)
 
-//        DisplayWords()
+        RadioOptions(
+            options = gameViewModel.wordOptions,
+            selectedOption = gameViewModel.userSelectedOption,
+            onOptionSelected = {gameViewModel.updateUserGuess(it)},
+            onClearSelection = {""},
+            onKeyboardDone = { gameViewModel.checkUserSelectedOption() }
+        )
 
         Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            OutlinedButton(
-                onClick = { gameViewModel.skipWord() },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            ) {
-                Text(stringResource(R.string.skip))
+            Button(onClick = { gameViewModel.skipWord() }) {
+                Text(text = "Skip")
             }
-
-            Button(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                onClick = { gameViewModel.checkUserGuess() }
-            ) {
-                Text(stringResource(R.string.submit))
+            Button(onClick = { gameViewModel.checkUserSelectedOption() }) {
+                Text(
+                    text = "Next",
+                    modifier = Modifier.width(50.dp),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
 }
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun GreetingPreview() {
+    MyTestTheme {
+        GameScreen()
+    }
+}
+

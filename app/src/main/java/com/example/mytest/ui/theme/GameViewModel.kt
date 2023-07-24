@@ -2,12 +2,14 @@ package com.example.mytest.ui.theme
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.mytest.data.MAX_NO_OF_WORDS
 import com.example.mytest.data.SCORE_INCREASE
+import com.example.mytest.data.allWords
 import com.example.mytest.model.Word
-import com.example.mytest.model.words
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,18 +20,22 @@ class GameViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(Word())
     val uiState: StateFlow<Word> = _uiState.asStateFlow()
 
-    //    User guess word will be stored here
-    var userGuess by mutableStateOf("")
-        private set
+    var userSelectedOption by  mutableStateOf("")
+    var currentWord by mutableStateOf("")
+    var clicks by  mutableStateOf(0)
+    var start = Random.nextInt(0, allWords.size - 11)
+    lateinit var tenWords: List<String>
+    lateinit var wordOptions: List<String>
 
-    private val start = Random.nextInt(0, words.size - 10)
+    fun pickTenWords(): List<String> {
+        return allWords.subList(start, start + 10)
+    }
 
-    //    To store the used words in current game
-    private var usedWords: MutableSet<String> = mutableSetOf()
-    private lateinit var currentWord: String
-
-    private fun pickRandomWordList(): List<Word> {
-        return words.subList(start, start+10 )
+    fun getCurrentWordOption(): List<String> {
+        tenWords = pickTenWords()
+        currentWord = tenWords[clicks]
+        wordOptions = swapWords(currentWord)
+        return wordOptions
     }
 
     fun swapWords(word: String): List<String> {
@@ -46,33 +52,13 @@ class GameViewModel: ViewModel() {
         return result
     }
 
-    //    Update User guess
-    fun updateUserGuess(guessedWord: String) {
-        userGuess = guessedWord
-    }
-
-    //    Check user guess to verify
-    fun checkUserGuess() {
-        if(userGuess.equals(currentWord, ignoreCase = true)) {
-            val updatedScore = _uiState.value.score.plus(SCORE_INCREASE)
-            updateGameState(updatedScore)
-        } else {
-            _uiState.update { currentState ->
-                currentState.copy(isGuessedWordWrong = true)
-            }
-        }
-//      reset userGuess
-        updateUserGuess("")
-    }
-
     //    Function to update game state
     private fun updateGameState(updatedScore: Int) {
-        if (usedWords.size == MAX_NO_OF_WORDS) {
+        if (clicks == MAX_NO_OF_WORDS) {
             _uiState.update { currentState ->
                 currentState.copy(
                     isGuessedWordWrong = false,
                     currentWordCount = currentState.currentWordCount.inc(),
-                    word = pickRandomWordList()[start].word,
                     score = updatedScore,
                     isGameOver = true
                 )
@@ -82,11 +68,21 @@ class GameViewModel: ViewModel() {
                 currentState.copy(
                     isGuessedWordWrong = false,
                     currentWordCount = currentState.currentWordCount.inc(),
-                    word = pickRandomWordList()[start].word,
                     score = updatedScore
                 )
             }
         }
+    }
+
+    fun onNextClick(): Int {
+        clicks += 1
+        if (clicks >= tenWords.size) {
+            clicks = 0
+        } else if(clicks < 0) {
+            clicks = tenWords.size - 1
+        }
+
+        return clicks;
     }
 
     //    Function to skip words
@@ -95,11 +91,28 @@ class GameViewModel: ViewModel() {
         updateUserGuess("")
     }
 
-    fun resetGame() {
-        _uiState.value = pickRandomWordList()[start]
+    //    Update User guess
+    fun updateUserGuess(guessedWord: String) {
+        userSelectedOption = guessedWord
     }
 
-    //    Init block to initialize the game
+    fun checkUserSelectedOption() {
+        if(userSelectedOption.equals(currentWord, ignoreCase = true)) {
+            val updatedScore =_uiState.value.score.plus(SCORE_INCREASE)
+            updateGameState(updatedScore)
+        } else {
+            _uiState.update { currentState ->
+                currentState.copy(isGuessedWordWrong = true)
+            }
+        }
+        updateUserGuess("")
+        onNextClick()
+    }
+
+
+    fun resetGame() {
+        _uiState.value = Word(words = getCurrentWordOption())
+    }
     init {
         resetGame()
     }
