@@ -64,7 +64,7 @@ fun RadioOptions(
             onClick = { onClearSelection() },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Clear Selection")
+            Text("Clear")
         }
     }
 }
@@ -146,7 +146,7 @@ fun GameScreen(
             options = gameViewModel.wordOptions,
             selectedOption = gameViewModel.userSelectedOption,
             onOptionSelected = {gameViewModel.updateUserGuess(it)},
-            onClearSelection = {""},
+            onClearSelection = {gameViewModel.clearSelectedOption()},
             onKeyboardDone = { gameViewModel.checkUserSelectedOption() }
         )
 
@@ -164,6 +164,13 @@ fun GameScreen(
                     textAlign = TextAlign.Center
                 )
             }
+        }
+
+        if (gameUiState.isGameOver) {
+            FinalScoreDialog(
+                score = gameUiState.score,
+                onPlayAgain = { gameViewModel.resetGame() }
+            )
         }
     }
 }

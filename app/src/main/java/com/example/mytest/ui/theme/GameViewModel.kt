@@ -22,39 +22,62 @@ class GameViewModel: ViewModel() {
 
     var userSelectedOption by  mutableStateOf("")
     var currentWord by mutableStateOf("")
-    var clicks by  mutableStateOf(0)
-    var start = Random.nextInt(0, allWords.size - 11)
+    private var clicks by  mutableStateOf(0)
     lateinit var tenWords: List<String>
     lateinit var wordOptions: List<String>
 
-    fun pickTenWords(): List<String> {
+
+    private fun pickTenWords(): List<String> {
+        var start = Random.nextInt(0, allWords.size - 10)
         return allWords.subList(start, start + 10)
     }
 
-    fun getCurrentWordOption(): List<String> {
+    private fun getCurrentWordOption(clicks: Int): List<String> {
         tenWords = pickTenWords()
         currentWord = tenWords[clicks]
         wordOptions = swapWords(currentWord)
-        return wordOptions
+        return wordOptions.shuffled()
     }
 
-    fun swapWords(word: String): List<String> {
-        var result =  mutableListOf<String>()
+    private fun getNextWords(clicks: Int): List<String> {
+        return getCurrentWordOption(clicks)
+    }
+
+    private fun swapWords(word: String): List<String> {
+        val result = mutableListOf<String>()
         val len = word.length
         result.add(word)
-        for( i in 1..3) {
-            val charArray = word.toCharArray()
-            val temp = charArray[len - i]
-            charArray[len - i] = charArray[len - i - 1]
-            charArray[len - i - 1] = temp
-            result.add(String(charArray))
+
+        if (len <= 4) {
+            // For word lengths <= 4, generate unique options only
+            for (i in 1 until len) {
+                val charArray = word.toCharArray()
+                val temp = charArray[len - i]
+                charArray[len - i] = charArray[len - i - 1]
+                charArray[len - i - 1] = temp
+                val newWord = String(charArray)
+                if (newWord != word) {
+                    result.add(newWord)
+                }
+            }
+        } else {
+            // For word lengths > 4, generate all possible options
+            for (i in 1..3) {
+                val charArray = word.toCharArray()
+                val temp = charArray[len - i]
+                charArray[len - i] = charArray[len - i - 1]
+                charArray[len - i - 1] = temp
+                result.add(String(charArray))
+            }
         }
+
         return result
     }
 
+
     //    Function to update game state
     private fun updateGameState(updatedScore: Int) {
-        if (clicks == MAX_NO_OF_WORDS) {
+        if (currentWord == tenWords[tenWords.size - 1] ) {
             _uiState.update { currentState ->
                 currentState.copy(
                     isGuessedWordWrong = false,
@@ -68,13 +91,13 @@ class GameViewModel: ViewModel() {
                 currentState.copy(
                     isGuessedWordWrong = false,
                     currentWordCount = currentState.currentWordCount.inc(),
-                    score = updatedScore
+                    score = updatedScore,
                 )
             }
         }
     }
 
-    fun onNextClick(): Int {
+    private fun onNextClick(): Int {
         clicks += 1
         if (clicks >= tenWords.size) {
             clicks = 0
@@ -87,7 +110,7 @@ class GameViewModel: ViewModel() {
 
     //    Function to skip words
     fun skipWord() {
-        updateGameState(_uiState.value.score )
+        updateGameState(_uiState.value.score)
         updateUserGuess("")
     }
 
@@ -100,18 +123,21 @@ class GameViewModel: ViewModel() {
         if(userSelectedOption.equals(currentWord, ignoreCase = true)) {
             val updatedScore =_uiState.value.score.plus(SCORE_INCREASE)
             updateGameState(updatedScore)
+            wordOptions = getNextWords(onNextClick())
         } else {
-            _uiState.update { currentState ->
-                currentState.copy(isGuessedWordWrong = true)
-            }
+            updateGameState(_uiState.value.score)
+            wordOptions = getNextWords(onNextClick())
         }
         updateUserGuess("")
-        onNextClick()
+    }
+
+    fun clearSelectedOption() {
+        userSelectedOption = ""
     }
 
 
     fun resetGame() {
-        _uiState.value = Word(words = getCurrentWordOption())
+        _uiState.value = Word(words = getCurrentWordOption(clicks))
     }
     init {
         resetGame()
