@@ -141,3 +141,30 @@ val allWords:  List<String> =
         ,"Victory"
 
     )
+
+val months: List<String> =
+    listOf(
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    )
+
+val days: List<String> =
+    listOf(
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    )

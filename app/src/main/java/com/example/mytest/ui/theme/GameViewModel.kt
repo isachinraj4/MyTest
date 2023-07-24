@@ -23,17 +23,20 @@ class GameViewModel: ViewModel() {
     var userSelectedOption by  mutableStateOf("")
     var currentWord by mutableStateOf("")
     private var clicks by  mutableStateOf(0)
-    lateinit var tenWords: List<String>
+    var tenWords: List<String> = emptyList()
     lateinit var wordOptions: List<String>
 
 
     private fun pickTenWords(): List<String> {
         var start = Random.nextInt(0, allWords.size - 10)
-        return allWords.subList(start, start + 10)
+        tenWords = allWords.subList(start, start + 10)
+        return tenWords
     }
 
     private fun getCurrentWordOption(clicks: Int): List<String> {
-        tenWords = pickTenWords()
+        if(tenWords.isEmpty()) {
+            pickTenWords()
+        }
         currentWord = tenWords[clicks]
         wordOptions = swapWords(currentWord)
         return wordOptions.shuffled()
@@ -46,33 +49,43 @@ class GameViewModel: ViewModel() {
     private fun swapWords(word: String): List<String> {
         val result = mutableListOf<String>()
         val len = word.length
-        result.add(word)
+        val generatedWords = mutableSetOf<String>()
 
-        if (len <= 4) {
-            // For word lengths <= 4, generate unique options only
-            for (i in 1 until len) {
-                val charArray = word.toCharArray()
-                val temp = charArray[len - i]
-                charArray[len - i] = charArray[len - i - 1]
-                charArray[len - i - 1] = temp
-                val newWord = String(charArray)
-                if (newWord != word) {
-                    result.add(newWord)
-                }
-            }
-        } else {
-            // For word lengths > 4, generate all possible options
-            for (i in 1..3) {
-                val charArray = word.toCharArray()
-                val temp = charArray[len - i]
-                charArray[len - i] = charArray[len - i - 1]
-                charArray[len - i - 1] = temp
-                result.add(String(charArray))
+        result.add(word)
+        generatedWords.add(word)
+
+        // For all word lengths, generate unique options
+        for (i in 1..minOf(3, len - 1)) {
+            val charArray = word.toCharArray()
+            val temp = charArray[len - i]
+            charArray[len - i] = charArray[len - i - 1]
+            charArray[len - i - 1] = temp
+            val newWord = String(charArray)
+            if (!generatedWords.contains(newWord)) {
+                result.add(newWord)
+                generatedWords.add(newWord)
             }
         }
 
-        return result
+        // Generate additional words if needed
+        while (result.size < 4) {
+            var newWord = word
+            while (generatedWords.contains(newWord)) {
+                newWord = newWord.shuffle() // A function to shuffle characters in the word randomly
+            }
+            result.add(newWord)
+            generatedWords.add(newWord)
+        }
+
+        return result.take(4) // Make sure the list contains exactly 4 words
     }
+
+//  Function to shuffle the characters in word
+    private fun String.shuffle(): String {
+        val shuffledChars = toCharArray().apply { shuffle() }
+        return String(shuffledChars)
+    }
+
 
 
     //    Function to update game state
@@ -138,6 +151,8 @@ class GameViewModel: ViewModel() {
 
 
     fun resetGame() {
+        tenWords = emptyList()
+        clicks = 0
         _uiState.value = Word(words = getCurrentWordOption(clicks))
     }
     init {

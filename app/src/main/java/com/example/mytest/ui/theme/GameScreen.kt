@@ -1,6 +1,7 @@
 package com.example.mytest.ui.theme
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mytest.R
+
 
 
 @Composable
@@ -149,7 +151,7 @@ fun GameScreen(
             fontSize = 18.sp,
             textAlign = TextAlign.Center
         )
-
+        Toast.makeText(LocalContext.current,gameViewModel.tenWords.toString(),Toast.LENGTH_LONG).show()
         RadioOptions(
             options = gameViewModel.wordOptions,
             selectedOption = gameViewModel.userSelectedOption,
