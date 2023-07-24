@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -141,6 +142,13 @@ fun GameScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         GameStatus(wordCount = gameUiState.currentWordCount, score = gameUiState.score)
+
+        Text(
+            stringResource(R.string.display_words),
+            Modifier.fillMaxSize(),
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center
+        )
 
         RadioOptions(
             options = gameViewModel.wordOptions,

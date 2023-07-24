@@ -111,6 +111,7 @@ class GameViewModel: ViewModel() {
     //    Function to skip words
     fun skipWord() {
         updateGameState(_uiState.value.score)
+        wordOptions = getNextWords(onNextClick())
         updateUserGuess("")
     }
 
