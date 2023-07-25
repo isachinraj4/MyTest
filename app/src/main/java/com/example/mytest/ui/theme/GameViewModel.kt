@@ -2,13 +2,9 @@ package com.example.mytest.ui.theme
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.mytest.data.MAX_NO_OF_WORDS
 import com.example.mytest.data.SCORE_INCREASE
-import com.example.mytest.data.allWords
 import com.example.mytest.model.Word
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.random.Random
 
-class GameViewModel: ViewModel() {
+class GameViewModel(private val dataSource: List<String>): ViewModel() {
     private val _uiState = MutableStateFlow(Word())
     val uiState: StateFlow<Word> = _uiState.asStateFlow()
 
@@ -25,18 +21,25 @@ class GameViewModel: ViewModel() {
     private var clicks by  mutableStateOf(0)
     var tenWords: List<String> = emptyList()
     lateinit var wordOptions: List<String>
+    var wordCount = 0
 
 
     private fun pickTenWords(): List<String> {
-        var start = Random.nextInt(0, allWords.size - 10)
-        tenWords = allWords.subList(start, start + 10)
+        var start = Random.nextInt(0, dataSource.size - 10)
+        tenWords = dataSource.subList(start, start + 10)
         return tenWords
     }
 
     private fun getCurrentWordOption(clicks: Int): List<String> {
-        if(tenWords.isEmpty()) {
-            pickTenWords()
+        if (dataSource.size <= 20 && tenWords.isEmpty()) {
+            tenWords = dataSource.shuffled()
         }
+        else if(dataSource.size > 20) {
+            if (tenWords.isEmpty()) {
+                pickTenWords()
+            }
+        }
+        wordCount = tenWords.size
         currentWord = tenWords[clicks]
         wordOptions = swapWords(currentWord)
         return wordOptions.shuffled()
@@ -80,7 +83,7 @@ class GameViewModel: ViewModel() {
         return result.take(4) // Make sure the list contains exactly 4 words
     }
 
-//  Function to shuffle the characters in word
+    //  Function to shuffle the characters in word
     private fun String.shuffle(): String {
         val shuffledChars = toCharArray().apply { shuffle() }
         return String(shuffledChars)
@@ -154,6 +157,9 @@ class GameViewModel: ViewModel() {
         tenWords = emptyList()
         clicks = 0
         _uiState.value = Word(words = getCurrentWordOption(clicks))
+//        clicks = 0
+//        tenWords = dataSource.shuffled().take(10)
+//        _uiState.value = Word(words = getCurrentWordOption(clicks))
     }
     init {
         resetGame()

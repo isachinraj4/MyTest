@@ -29,9 +29,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mytest.R
-
+import com.example.mytest.data.allWords
 
 
 @Composable
@@ -73,7 +75,7 @@ fun RadioOptions(
 }
 
 @Composable
-fun GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
+fun GameStatus(wordCount: Int, score: Int,word_count: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -81,7 +83,7 @@ fun GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
             .size(48.dp),
     ) {
         Text(
-            text = stringResource(R.string.word_count, wordCount),
+            text = stringResource(R.string.word_count, wordCount, word_count),
             fontSize = 18.sp,
         )
         Text(
@@ -143,7 +145,7 @@ fun GameScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        GameStatus(wordCount = gameUiState.currentWordCount, score = gameUiState.score)
+        GameStatus(wordCount = gameUiState.currentWordCount, score = gameUiState.score, word_count = gameViewModel.wordCount)
 
         Text(
             stringResource(R.string.display_words),
@@ -185,11 +187,26 @@ fun GameScreen(
     }
 }
 
+@Composable
+fun MyComposable(data: List<String>) {
+    val gameViewModel = viewModel<GameViewModel>(factory = object : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(GameViewModel::class.java)) {
+                return GameViewModel(data) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    })
+
+    GameScreen(gameViewModel = gameViewModel)
+}
+
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GreetingPreview() {
     MyTestTheme {
-        GameScreen()
+        MyComposable(allWords)
     }
 }
 
