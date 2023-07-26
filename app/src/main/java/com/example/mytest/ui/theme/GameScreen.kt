@@ -1,7 +1,6 @@
 package com.example.mytest.ui.theme
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,9 +11,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +25,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -40,36 +44,32 @@ import com.example.mytest.data.allWords
 fun RadioOptions(
     options: List<String>,
     selectedOption: String,
-    onOptionSelected: (String) -> Unit,
-    onClearSelection: () -> Unit,
-    onKeyboardDone: () -> Unit
+    onOptionSelected: (String) -> Unit
 ) {
-    Column {
-        options.forEach { option ->
-            Row(
-                Modifier
-                    .padding(vertical = 4.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                RadioButton(
-                    selected = (option == selectedOption),
-                    onClick = { onOptionSelected(option) }
-                )
-                Text(
-                    text = option,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-
-        // Button to clear the selection
-        Button(
-            onClick = { onClearSelection() },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+    Card(
+        modifier = Modifier.shadow(10.dp, RoundedCornerShape(20),true, Color.Gray),
+        shape = MaterialTheme.shapes.large
         ) {
-            Text("Clear")
+        Column {
+            options.forEach { option ->
+                Row(
+                    Modifier
+                        .padding(vertical = 4.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    RadioButton(
+                        selected = (option == selectedOption),
+                        onClick = { if(option == selectedOption) onOptionSelected("") else
+                        onOptionSelected(option) }
+                    )
+                    Text(
+                        text = option,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -134,8 +134,8 @@ private fun FinalScoreDialog(
 
 @Composable
 fun GameScreen(
-    modifier: Modifier = Modifier,
-    gameViewModel: GameViewModel = viewModel()
+    gameViewModel: GameViewModel = viewModel(),
+    modifier: Modifier = Modifier
 ) {
     val gameUiState by gameViewModel.uiState.collectAsState()
 
@@ -153,13 +153,11 @@ fun GameScreen(
             fontSize = 18.sp,
             textAlign = TextAlign.Center
         )
-        Toast.makeText(LocalContext.current,gameViewModel.tenWords.toString(),Toast.LENGTH_LONG).show()
+
         RadioOptions(
             options = gameViewModel.wordOptions,
             selectedOption = gameViewModel.userSelectedOption,
-            onOptionSelected = {gameViewModel.updateUserGuess(it)},
-            onClearSelection = {gameViewModel.clearSelectedOption()},
-            onKeyboardDone = { gameViewModel.checkUserSelectedOption() }
+            onOptionSelected = {gameViewModel.updateUserGuess(it)}
         )
 
         Row(

@@ -137,21 +137,16 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
     }
 
     fun checkUserSelectedOption() {
-        if(userSelectedOption.equals(currentWord, ignoreCase = true)) {
+        wordOptions = if(userSelectedOption.equals(currentWord, ignoreCase = true)) {
             val updatedScore =_uiState.value.score.plus(SCORE_INCREASE)
             updateGameState(updatedScore)
-            wordOptions = getNextWords(onNextClick())
+            getNextWords(onNextClick())
         } else {
             updateGameState(_uiState.value.score)
-            wordOptions = getNextWords(onNextClick())
+            getNextWords(onNextClick())
         }
         updateUserGuess("")
     }
-
-    fun clearSelectedOption() {
-        userSelectedOption = ""
-    }
-
 
     fun resetGame() {
         tenWords = emptyList()
