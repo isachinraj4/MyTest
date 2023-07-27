@@ -1,7 +1,16 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.example.mytest.ui.theme
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,7 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -40,33 +46,63 @@ import com.example.mytest.R
 import com.example.mytest.data.allWords
 
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.unit.Dp
+
 @Composable
 fun RadioOptions(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit
 ) {
-    Card(
-        modifier = Modifier.shadow(10.dp, RoundedCornerShape(20),true, Color.Gray),
-        shape = MaterialTheme.shapes.large
-        ) {
-        Column {
-            options.forEach { option ->
+    Column(modifier = Modifier.fillMaxWidth()) {
+        options.forEach { option ->
+            val gradientBorder = if (option == selectedOption) {
+                val gradientColors = listOf(
+                    Color(0xFF00FF00), // Green
+                    Color(0xFF3E8823) // Yellow
+                )
+                val brush = Brush.horizontalGradient(
+                    colors = gradientColors,
+                    startX = 0f,
+                    endX = 100f
+                )
+                BorderStroke(1.dp, brush)
+            } else {
+                BorderStroke(1.dp, Color.LightGray)
+            }
+
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .fillMaxWidth()
+                    .border(gradientBorder, RoundedCornerShape(30))
+                    .clickable {
+                        if (option == selectedOption) onOptionSelected("") else
+                            onOptionSelected(option)
+                    }
+            ) {
                 Row(
-                    Modifier
-                        .padding(vertical = 4.dp)
-                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth().padding(8.dp).size(28.dp)
                 ) {
-                    RadioButton(
-                        selected = (option == selectedOption),
-                        onClick = { if(option == selectedOption) onOptionSelected("") else
-                        onOptionSelected(option) }
-                    )
                     Text(
                         text = option,
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.weight(1f)
+                    )
+                    CircularCheckButton(
+                        selected = (option == selectedOption),
+                        onClick = { if (option == selectedOption) onOptionSelected("") else
+                            onOptionSelected(option) }
                     )
                 }
             }
@@ -75,7 +111,45 @@ fun RadioOptions(
 }
 
 @Composable
-fun GameStatus(wordCount: Int, score: Int,word_count: Int, modifier: Modifier = Modifier) {
+fun CircularCheckButton(
+    selected: Boolean,
+    onClick: () -> Unit,
+    size: Dp = 28.dp
+) {
+    val defaultTint = Color.LightGray
+
+    val tint = if (selected) {
+        Color(0xFF00FF00) // Always use dark green for checked state
+    } else {
+        defaultTint
+    }
+
+    val scale = rememberUpdatedState(if (selected) 1.2f else 1f)
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.CheckCircle,
+            contentDescription = null,
+            modifier = Modifier
+                .graphicsLayer(
+                    scaleX = scale.value,
+                    scaleY = scale.value
+                ),
+            tint = tint
+        )
+    }
+}
+
+
+
+
+@Composable
+fun Int.GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -83,7 +157,7 @@ fun GameStatus(wordCount: Int, score: Int,word_count: Int, modifier: Modifier = 
             .size(48.dp),
     ) {
         Text(
-            text = stringResource(R.string.word_count, wordCount, word_count),
+            text = stringResource(R.string.word_count, wordCount, this@GameStatus),
             fontSize = 18.sp,
         )
         Text(
@@ -135,7 +209,7 @@ private fun FinalScoreDialog(
 @Composable
 fun GameScreen(
     gameViewModel: GameViewModel = viewModel(),
-    modifier: Modifier = Modifier
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
     val gameUiState by gameViewModel.uiState.collectAsState()
 
@@ -145,7 +219,10 @@ fun GameScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        GameStatus(wordCount = gameUiState.currentWordCount, score = gameUiState.score, word_count = gameViewModel.wordCount)
+        gameViewModel.wordCount.GameStatus(
+            wordCount = gameUiState.currentWordCount,
+            score = gameUiState.score
+        )
 
         Text(
             stringResource(R.string.display_words),
