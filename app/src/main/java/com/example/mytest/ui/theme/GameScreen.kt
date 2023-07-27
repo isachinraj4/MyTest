@@ -4,11 +4,14 @@ package com.example.mytest.ui.theme
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +34,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -49,12 +51,9 @@ import com.example.mytest.data.allWords
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Dp
 
 @Composable
@@ -63,21 +62,29 @@ fun RadioOptions(
     selectedOption: String,
     onOptionSelected: (String) -> Unit
 ) {
+    val transient = rememberInfiniteTransition(label = "To create infinite transition of border around the options")
+    val unSelectedColor by transient.animateColor(
+        initialValue = Color.LightGray,
+        targetValue = Color.DarkGray,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000),
+            repeatMode = RepeatMode.Reverse
+        ), label = "This is to have infinite color transition"
+    )
+    val selectedColor by transient.animateColor(
+        initialValue = Color(0xFF1C6402),
+        targetValue = Color(0xFF00FF00),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000),
+            repeatMode = RepeatMode.Reverse
+        ), label = "This is to have infinite blue color transition on option selected"
+    )
     Column(modifier = Modifier.fillMaxWidth()) {
         options.forEach { option ->
             val gradientBorder = if (option == selectedOption) {
-                val gradientColors = listOf(
-                    Color(0xFF00FF00), // Green
-                    Color(0xFF3E8823) // Yellow
-                )
-                val brush = Brush.horizontalGradient(
-                    colors = gradientColors,
-                    startX = 0f,
-                    endX = 100f
-                )
-                BorderStroke(1.dp, brush)
+                BorderStroke(1.dp, selectedColor)
             } else {
-                BorderStroke(1.dp, Color.LightGray)
+                BorderStroke(1.dp, unSelectedColor)
             }
 
             Box(
@@ -93,7 +100,10 @@ fun RadioOptions(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).size(28.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .size(28.dp)
                 ) {
                     Text(
                         text = option,
@@ -102,7 +112,8 @@ fun RadioOptions(
                     CircularCheckButton(
                         selected = (option == selectedOption),
                         onClick = { if (option == selectedOption) onOptionSelected("") else
-                            onOptionSelected(option) }
+                            onOptionSelected(option) },
+                        selectedColor
                     )
                 }
             }
@@ -114,12 +125,13 @@ fun RadioOptions(
 fun CircularCheckButton(
     selected: Boolean,
     onClick: () -> Unit,
+    selectedColor: Color,
     size: Dp = 28.dp
 ) {
     val defaultTint = Color.LightGray
 
     val tint = if (selected) {
-        Color(0xFF00FF00) // Always use dark green for checked state
+        selectedColor // Always use dark green for checked state
     } else {
         defaultTint
     }
