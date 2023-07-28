@@ -5,6 +5,7 @@ package com.example.mytest.ui.theme
 import android.annotation.SuppressLint
 import android.app.Activity
 import androidx.compose.animation.animateColor
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -46,8 +47,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mytest.R
 import com.example.mytest.data.allWords
-
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -67,7 +66,7 @@ fun RadioOptions(
         initialValue = Color.LightGray,
         targetValue = Color.DarkGray,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000),
+            animation = tween(1500),
             repeatMode = RepeatMode.Reverse
         ), label = "This is to have infinite color transition"
     )
@@ -75,7 +74,7 @@ fun RadioOptions(
         initialValue = Color(0xFF1C6402),
         targetValue = Color(0xFF00FF00),
         animationSpec = infiniteRepeatable(
-            animation = tween(2000),
+            animation = tween(1000),
             repeatMode = RepeatMode.Reverse
         ), label = "This is to have infinite blue color transition on option selected"
     )
@@ -169,13 +168,14 @@ fun Int.GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
             .size(48.dp),
     ) {
         Text(
+            modifier = Modifier.animateContentSize(),
             text = stringResource(R.string.word_count, wordCount, this@GameStatus),
             fontSize = 18.sp,
         )
         Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentWidth(Alignment.End),
+                .wrapContentWidth(Alignment.End).animateContentSize(),
             text = stringResource(R.string.score, score),
             fontSize = 18.sp,
         )
