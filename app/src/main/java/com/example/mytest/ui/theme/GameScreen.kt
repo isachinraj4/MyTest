@@ -85,7 +85,6 @@ fun RadioOptions(
             } else {
                 BorderStroke(1.dp, unSelectedColor)
             }
-
             Box(
                 modifier = Modifier
                     .padding(vertical = 4.dp)
