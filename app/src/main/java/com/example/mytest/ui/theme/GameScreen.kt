@@ -4,15 +4,23 @@ package com.example.mytest.ui.theme
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -165,6 +173,7 @@ fun Int.GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .padding(16.dp)
             .size(48.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             modifier = Modifier.animateContentSize(),
@@ -174,7 +183,8 @@ fun Int.GameStatus(wordCount: Int, score: Int, modifier: Modifier = Modifier) {
         Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentWidth(Alignment.End).animateContentSize(),
+                .wrapContentWidth(Alignment.End)
+                .animateContentSize(),
             text = stringResource(R.string.score, score),
             fontSize = 18.sp,
         )
@@ -190,11 +200,7 @@ private fun FinalScoreDialog(
     val activity = (LocalContext.current as Activity)
 
     AlertDialog(
-        onDismissRequest = {
-            // Dismiss the dialog when the user clicks outside the dialog or on the back
-            // button. If you want to disable that functionality, simply use an empty
-            // onCloseRequest.
-        },
+        onDismissRequest = {  },
         title = { Text(stringResource(R.string.congratulations)) },
         text = { Text(stringResource(R.string.you_scored, score)) },
         modifier = modifier,
@@ -265,10 +271,24 @@ fun GameScreen(
         }
 
         if (gameUiState.isGameOver) {
-            FinalScoreDialog(
-                score = gameUiState.score,
-                onPlayAgain = { gameViewModel.resetGame() }
-            )
+            AnimatedVisibility(
+                visible = gameUiState.isGameOver,
+                enter = fadeIn() + expandHorizontally() + expandVertically(),
+                exit = fadeOut() + shrinkHorizontally() + shrinkVertically()
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = if (gameUiState.isGameOver) Alignment.Center else Alignment.BottomCenter
+                ) {
+                    FinalScoreDialog(
+                        modifier= Modifier,
+                        score = gameUiState.score,
+                        onPlayAgain = {
+                            gameViewModel.resetGame()
+                        }
+                    )
+                }
+            }
         }
     }
 }
