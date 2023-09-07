@@ -1,6 +1,7 @@
 package com.example.mytest.ui.theme
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -18,14 +19,14 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
 
     var userSelectedOption by  mutableStateOf("")
     var currentWord by mutableStateOf("")
-    private var clicks by  mutableStateOf(0)
-    var tenWords: List<String> = emptyList()
+    private var clicks by  mutableIntStateOf(0)
+    private var tenWords: List<String> = emptyList()
     lateinit var wordOptions: List<String>
     var wordCount = 0
 
 
     private fun pickTenWords(): List<String> {
-        var start = Random.nextInt(0, dataSource.size - 10)
+        val start = Random.nextInt(0, dataSource.size - 10)
         tenWords = dataSource.subList(start, start + 10)
         return tenWords
     }
@@ -121,7 +122,7 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
             clicks = tenWords.size - 1
         }
 
-        return clicks;
+        return clicks
     }
 
     //    Function to skip words
