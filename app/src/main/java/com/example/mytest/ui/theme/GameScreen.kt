@@ -5,6 +5,7 @@ package com.example.mytest.ui.theme
 import android.annotation.SuppressLint
 import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
@@ -48,6 +49,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mytest.R
 import com.example.mytest.data.allWords
+import com.example.mytest.ui.screens.ResOptionList
+import kotlinx.coroutines.delay
 
 @Composable
 fun RadioOptions(
@@ -255,28 +258,50 @@ fun GameScreen(
                 )
             }
         }
+    }
+}
 
-        if (gameUiState.isGameOver) {
-            AnimatedVisibility(
-                visible = gameUiState.isGameOver,
-                enter = fadeIn() + expandHorizontally() + expandVertically(),
-                exit = fadeOut() + shrinkHorizontally() + shrinkVertically()
+
+@Composable
+fun MainScreen(
+    gameViewModel: GameViewModel = viewModel(),
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
+) {
+    val gameUiState by gameViewModel.uiState.collectAsState()
+    val showResponse = gameViewModel.showResponse
+    LaunchedEffect(key1 = showResponse) {
+        delay(5000)
+        gameViewModel.showResponse = false
+    }
+
+    if (showResponse) {
+        ResOptionList(gameViewModel = gameViewModel)
+    }
+    else{
+        GameScreen(gameViewModel = gameViewModel)
+    }
+
+    if (gameUiState.isGameOver) {
+        AnimatedVisibility(
+            visible = gameUiState.isGameOver,
+            enter = fadeIn() + expandHorizontally() + expandVertically(),
+            exit = fadeOut() + shrinkHorizontally() + shrinkVertically()
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = if (gameUiState.isGameOver) Alignment.Center else Alignment.BottomCenter
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = if (gameUiState.isGameOver) Alignment.Center else Alignment.BottomCenter
-                ) {
-                    FinalScoreDialog(
-                        modifier= Modifier,
-                        score = gameUiState.score,
-                        onPlayAgain = {
-                            gameViewModel.resetGame()
-                        }
-                    )
-                }
+                FinalScoreDialog(
+                    modifier= Modifier,
+                    score = gameUiState.score,
+                    onPlayAgain = {
+                        gameViewModel.resetGame()
+                    }
+                )
             }
         }
     }
+
 }
 
 @Composable
@@ -290,7 +315,7 @@ fun MyComposable(data: List<String>) {
         }
     })
 
-    GameScreen(gameViewModel = gameViewModel)
+    MainScreen(gameViewModel = gameViewModel)
 }
 
 

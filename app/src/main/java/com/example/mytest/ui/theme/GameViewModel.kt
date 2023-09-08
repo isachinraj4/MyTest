@@ -7,10 +7,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.mytest.data.SCORE_INCREASE
 import com.example.mytest.model.Word
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 class GameViewModel(private val dataSource: List<String>): ViewModel() {
@@ -19,6 +21,7 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
 
     var userSelectedOption by  mutableStateOf("")
     var currentWord by mutableStateOf("")
+    var showResponse by mutableStateOf(false)
     private var clicks by  mutableIntStateOf(0)
     private var tenWords: List<String> = emptyList()
     lateinit var wordOptions: List<String>
@@ -93,7 +96,8 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
 
 
     //    Function to update game state
-    private fun updateGameState(updatedScore: Int) {
+    private  fun updateGameState(updatedScore: Int) {
+        //delay(100)
         if (currentWord == tenWords[tenWords.size - 1] ) {
             _uiState.update { currentState ->
                 currentState.copy(
@@ -140,6 +144,7 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
     fun checkUserSelectedOption() {
         if(userSelectedOption.equals(currentWord, ignoreCase = true)) {
             val updatedScore =_uiState.value.score.plus(SCORE_INCREASE)
+            showResponse = true
             updateGameState(updatedScore)
             wordOptions = getNextWords(onNextClick())
         }
@@ -147,6 +152,7 @@ class GameViewModel(private val dataSource: List<String>): ViewModel() {
 
         }
         else {
+            showResponse = true
             updateGameState(_uiState.value.score)
             wordOptions = getNextWords(onNextClick())
         }

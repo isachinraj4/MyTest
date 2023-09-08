@@ -1,10 +1,9 @@
 package com.example.mytest.ui.screens
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +25,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mytest.ui.theme.CircularCheckButton
+import com.example.mytest.ui.theme.GameViewModel
 
 @Composable
 fun CrossButton(
@@ -57,19 +58,20 @@ fun CrossButton(
 
 @Composable
 fun ResOptionList(
-
+    gameViewModel: GameViewModel = viewModel(),
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
-    val options = listOf("Test1", "Test2", "Test3", "Test4")
-    val optionResponse = "Test1"
-    val correctOption = "Test2"
+    val options = gameViewModel.wordOptions
+    val optionResponse = gameViewModel.userSelectedOption
+    val correctOption = gameViewModel.currentWord
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
         options.forEach { option ->
             Box(
                 modifier = Modifier
                     .padding(vertical = 4.dp)
                     .fillMaxWidth()
-                    .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(50))
+                    .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(30))
 
             ) {
                 Row(
