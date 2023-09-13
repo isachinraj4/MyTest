@@ -258,11 +258,31 @@ fun GameScreen(
                 )
             }
         }
+        if (gameUiState.isGameOver) {
+            AnimatedVisibility(
+                visible = gameUiState.isGameOver,
+                enter = fadeIn() + expandHorizontally() + expandVertically(),
+                exit = fadeOut() + shrinkHorizontally() + shrinkVertically()
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = if (gameUiState.isGameOver) Alignment.Center else Alignment.BottomCenter
+                ) {
+                    FinalScoreDialog(
+                        modifier= Modifier,
+                        score = gameUiState.score,
+                        onPlayAgain = {
+                            gameViewModel.resetGame()
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
 
-@Composable
+/*@Composable
 fun MainScreen(
     gameViewModel: GameViewModel = viewModel(),
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
@@ -302,7 +322,7 @@ fun MainScreen(
         }
     }
 
-}
+}*/
 
 @Composable
 fun MyComposable(data: List<String>) {
@@ -315,7 +335,7 @@ fun MyComposable(data: List<String>) {
         }
     })
 
-    MainScreen(gameViewModel = gameViewModel)
+    GameScreen(gameViewModel = gameViewModel)
 }
 
 

@@ -1,6 +1,5 @@
 package com.example.mytest.data
 
-import com.example.mytest.model.Word
 
 const val MAX_NO_OF_WORDS = 10
 const val SCORE_INCREASE = 20

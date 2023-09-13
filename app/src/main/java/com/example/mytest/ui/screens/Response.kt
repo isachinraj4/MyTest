@@ -1,6 +1,5 @@
 package com.example.mytest.ui.screens
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -59,7 +58,6 @@ fun CrossButton(
 @Composable
 fun ResOptionList(
     gameViewModel: GameViewModel = viewModel(),
-    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
     val options = gameViewModel.wordOptions
     val optionResponse = gameViewModel.userSelectedOption
